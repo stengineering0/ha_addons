@@ -1,0 +1,21 @@
+name: "OpenVPN client"
+version: "0.1.0"
+slug: "openvpn-client"
+description: "Connect Hassio to a remote VPN Server"
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+startup: "application"
+boot: "auto"
+host_network: true
+privileged: ["NET_ADMIN"]
+options:
+  ovpn_file: "profile.ovpn"
+schema:
+  ovpn_file: str
+map:
+  - addon_config:ro
+init: false

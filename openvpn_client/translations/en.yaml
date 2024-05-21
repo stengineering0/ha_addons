@@ -1,0 +1,4 @@
+configuration:
+  ovpn_file:
+    name: OVPN file name
+    description: Get OVPN file from your VPN provider and copy it into /addon_configs/openvpn_client/ folder.
