@@ -1,6 +1,6 @@
 import logging
 
-from wb_hass_gw.mappers import WirenControlType
+from mappers import WirenControlType
 
 logger = logging.getLogger(__name__)
 

@@ -1,0 +1,23 @@
+name: "Wiren Board - MQTT Discovery"
+version: "0.1.0"
+slug: "wirenboard-mqtt-discovery"
+description: "MQTT auto discovety for Wiren Board controller"
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+  - i386
+startup: "application"
+boot: "auto"
+options:
+  broker_host: null
+  broker_port: 1883
+  client_id: "wirenboard-mqtt-discovery"
+schema:
+  broker_host: str
+  broker_port: port
+  username: str?
+  password: password?
+  client_id: str
+init: false

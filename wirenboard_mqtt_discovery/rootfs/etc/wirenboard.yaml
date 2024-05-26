@@ -1,0 +1,6 @@
+wirenboard:
+  broker_host: "%%broker_host%%"
+  broker_port: %%broker_port%%
+  username: "%%username%%"
+  password: "%%password%%"
+  client_id: "%%client_id%%"

@@ -1,3 +1,17 @@
+# Wiren Board - MQTT Discovery
+
+Heavily based on [hacker-cb/wb-hass-gw](hacker-cb/wb-hass-gw) repository, with following changes:
+
+1. The code is wrapped into full-weight HA Addon;
+
+2. No proxy between HA MQTT broker and WB one, instead we push discovery topics right into WB MQTT instance.
+Then user can set any brokers configuration - single MQTT inside HA, or single MQTT inside WB, or MQTT bridge.
+
+[WIP]
+
+---
+
+
 # Wiren Board - Home Assistant geteway
 
 Gateway to connect [Wiren Board](https://wirenboard.com/) to [Home Assistant](http://home-assistant.io)

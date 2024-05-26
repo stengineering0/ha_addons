@@ -1,0 +1,28 @@
+#!/command/with-contenv bashio
+# shellcheck shell=bash
+
+declare broker_host
+broker_host=$(bashio::config 'broker_host')
+sed -i "s/%%broker_host%%/${broker_host}/g" /etc/wirenboard.yaml
+
+declare broker_port
+broker_port=$(bashio::config 'broker_port')
+sed -i "s/%%broker_port%%/${broker_port}/g" /etc/wirenboard.yaml
+
+declare client_id
+client_id=$(bashio::config 'client_id')
+sed -i "s/%%client_id%%/${client_id}/g" /etc/wirenboard.yaml
+
+declare username
+username=''
+if bashio::config.has_value 'username'; then
+  username=$(bashio::config 'username')
+fi
+sed -i "s/%%username%%/${username}/g" /etc/wirenboard.yaml
+
+declare password
+password=''
+if bashio::config.has_value 'password'; then
+  password=$(bashio::config 'password')
+fi
+sed -i "s/%%password%%/${password}/g" /etc/wirenboard.yaml

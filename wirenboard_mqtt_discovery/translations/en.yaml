@@ -1,0 +1,12 @@
+configuration:
+  broker_host:
+    name: Wiren Board host
+  broker_port:
+    name: WB MQTT port
+  username:
+    name: WB MQTT username
+  password:
+    name: WB MQTT password
+  client_id:
+    name: WB MQTT client ID
+    description: To be used as HA client identifier when connecting to WB MQTT
