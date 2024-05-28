@@ -38,6 +38,8 @@ class WirenConnector(BaseConnector):
         device = WirenBoardDeviceRegistry().get_device(device_id)
         if meta_name == 'name':
             device.name = meta_value
+        elif meta_name == 'driver':
+            device.model = meta_value
         # print(f'DEVICE: {device_id} / {meta_name} ==> {meta_value}')
 
     def _on_control_meta_change(self, device_id, control_id, meta_name, meta_value):
@@ -137,6 +139,10 @@ class WirenConnector(BaseConnector):
     def _get_control_topic(self, device: WirenDevice, control: WirenControl):
         return f"{self._topic_prefix}/devices/{device.id}/controls/{control.id}"
 
+    @staticmethod
+    def _normalize_id(identifier):
+        return re.sub(r'[^a-z0-9_]', '_', identifier.lower())
+
     def _publish_config_sync(self, device: WirenDevice, control: WirenControl):
         """
         Publish discovery topic to the HA
@@ -149,10 +155,10 @@ class WirenConnector(BaseConnector):
             device_unique_id = device.id
             device_name = device.name
 
-        device_unique_id = device_unique_id.lower().replace(" ", "_").replace("-", "_")
+        device_unique_id = self._normalize_id(device_unique_id)
 
-        entity_unique_id = f"{device.id}_{control.id}".lower().replace(" ", "_").replace("-", "_")
-        object_id = f"{control.id}".lower().replace(" ", "_").replace("-", "_")
+        entity_unique_id = self._normalize_id(f"{device.id}_{control.id}")
+        object_id = self._normalize_id(f"{control.id}")
         entity_name = f"{device.id} {control.id}".replace("_", " ").title()
 
         node_id = device_unique_id
@@ -161,7 +167,9 @@ class WirenConnector(BaseConnector):
         payload = {
             'device': {
                 'name': device_name,
-                'identifiers': device_unique_id
+                'identifiers': device_unique_id,
+                'manufacturer': 'Wirenboard',
+                'model': device.model
             },
             'name': entity_name,
             'unique_id': entity_unique_id

@@ -61,6 +61,7 @@ class WirenControl:
 
 class WirenDevice:
     name = None
+    model = None
 
     def __init__(self, device_id):
         self.id = device_id
