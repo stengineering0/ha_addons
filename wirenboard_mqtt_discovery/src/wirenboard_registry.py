@@ -9,6 +9,7 @@ class WirenControl:
     type: WirenControlType = None
     read_only = False
     error = None
+    device_class = None
     units = None
     max = None
     state = None
@@ -41,7 +42,19 @@ class WirenControl:
             self.error = error
             return True
 
+    def apply_device_class(self, device_class):
+        if self.device_class == device_class:
+            return False
+        else:
+            self.device_class = device_class
+            return True
+
     def apply_units(self, units):
+        if units == 'MiB':
+            has_changes = self.apply_units('MB')
+            has_changes |= self.apply_device_class('data_size')
+            return has_changes
+
         if self.units == units:
             return False
         else:
@@ -56,7 +69,7 @@ class WirenControl:
             return True
 
     def __str__(self) -> str:
-        return f'Control [{self.id}] type: {self.type}, units: {self.units}, read_only: {self.read_only}, error: {self.error}, max: {self.max}, state: {self.state}'
+        return f'Control [{self.id}] type: {self.type}, device_class: {self.device_class}, units: {self.units}, read_only: {self.read_only}, error: {self.error}, max: {self.max}, state: {self.state}'
 
 
 class WirenDevice:

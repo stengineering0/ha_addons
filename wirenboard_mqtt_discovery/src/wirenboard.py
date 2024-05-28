@@ -4,7 +4,7 @@ import logging
 import re
 
 from base_connector import BaseConnector
-from mappers import WirenControlType, apply_payload_for_component, WIREN_UNITS_DICT
+from mappers import WirenControlType, apply_payload_for_component, WIREN_DEVICE_CLASSES, WIREN_UNITS_DICT
 from wirenboard_registry import WirenBoardDeviceRegistry, WirenDevice, WirenControl
 
 logger = logging.getLogger(__name__)
@@ -64,6 +64,8 @@ class WirenConnector(BaseConnector):
             elif meta_name == 'type':
                 try:
                     has_changes |= control.apply_type(WirenControlType(meta_value))
+                    if control.type in WIREN_DEVICE_CLASSES:
+                        has_changes |= control.apply_device_class(WIREN_DEVICE_CLASSES[control.type])
                     if control.type in WIREN_UNITS_DICT:
                         has_changes |= control.apply_units(WIREN_UNITS_DICT[control.type])
                 except ValueError:
@@ -163,13 +165,17 @@ class WirenConnector(BaseConnector):
 
         node_id = device_unique_id
 
+        device_model = device.model
+        if not device_model:
+            device_model = 'UNKNOWN'
+
         # common payload
         payload = {
             'device': {
                 'name': device_name,
                 'identifiers': device_unique_id,
                 'manufacturer': 'Wirenboard',
-                'model': device.model
+                'model': device_model
             },
             'name': entity_name,
             'unique_id': entity_unique_id

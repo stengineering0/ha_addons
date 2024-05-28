@@ -34,26 +34,46 @@ class WirenControlType(Enum):
     concentration = "concentration"
     heat_power = "heat_power"
     heat_energy = "heat_energy"
+    lux = "lux"
+    sound_level = "sound_level"
 
     # custom types
     current = "current"
 
+WIREN_DEVICE_CLASSES = {
+    WirenControlType.temperature: 'temperature',
+    WirenControlType.rel_humidity: 'humidity',
+    WirenControlType.atmospheric_pressure: 'atmospheric_pressure',
+    WirenControlType.rainfall: 'precipitation_intensity',
+    WirenControlType.wind_speed: 'wind_speed',
+    WirenControlType.power: 'power',
+    WirenControlType.power_consumption: 'energy',
+    WirenControlType.voltage: 'voltage',
+    WirenControlType.water_flow: 'volume_flow_rate',
+    WirenControlType.water_consumption: 'water',
+    WirenControlType.concentration: 'carbon_dioxide',
+    WirenControlType.lux: 'illuminance',
+    WirenControlType.sound_level: 'sound_pressure',
+}
 
 WIREN_UNITS_DICT = {
     WirenControlType.temperature: '°C',
     WirenControlType.rel_humidity: '%',
-    WirenControlType.atmospheric_pressure: 'millibar',
-    WirenControlType.rainfall: 'mm per hour',
+    WirenControlType.atmospheric_pressure: 'mbar',
+    WirenControlType.rainfall: 'mm/h',
     WirenControlType.wind_speed: 'm/s',
-    WirenControlType.power: 'watt',
+    WirenControlType.power: 'W',
     WirenControlType.power_consumption: 'kWh',
     WirenControlType.voltage: 'V',
-    WirenControlType.water_flow: 'm³/hour',
+    WirenControlType.water_flow: 'm³/h',
     WirenControlType.water_consumption: 'm³',
     WirenControlType.resistance: 'Ohm',
     WirenControlType.concentration: 'ppm',
     WirenControlType.heat_power: 'Gcal/hour',
     WirenControlType.heat_energy: 'Gcal',
+    WirenControlType.lux: 'lx',
+    WirenControlType.sound_level: 'dB',
+
     WirenControlType.current: 'A',
 }
 
@@ -80,6 +100,8 @@ _WIREN_TO_HASS_MAPPER = {
     WirenControlType.concentration: 'sensor',
     WirenControlType.heat_power: 'sensor',
     WirenControlType.heat_energy: 'sensor',
+    WirenControlType.lux: 'sensor',
+    WirenControlType.sound_level: 'sensor',
 
     WirenControlType.current: 'sensor',
 }
@@ -129,8 +151,8 @@ def apply_payload_for_component(payload, device, control, control_topic, inverse
         payload.update({
             'state_topic': f"{control_topic}",
         })
-        if control.type == WirenControlType.temperature:
-            payload['device_class'] = 'temperature'
+        if control.device_class:
+            payload['device_class'] = control.device_class
         if control.units:
             payload['unit_of_measurement'] = control.units
     # elif hass_entity_type == 'cover':
