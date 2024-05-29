@@ -27,7 +27,6 @@ class WirenConnector(BaseConnector):
 
         self._device_meta_topic_re = re.compile(self._topic_prefix + r"/devices/([^/]*)/meta/([^/]*)")
         self._control_meta_topic_re = re.compile(self._topic_prefix + r"/devices/([^/]*)/controls/([^/]*)/meta/([^/]*)")
-        self._control_state_topic_re = re.compile(self._topic_prefix + r"/devices/([^/]*)/controls/([^/]*)$")
         self._unknown_types = []
         self._async_tasks = {}
         self._component_types = {}
@@ -76,6 +75,8 @@ class WirenConnector(BaseConnector):
                 has_changes |= control.apply_read_only(True if meta_value == '1' else False)
             elif meta_name == 'units':
                 has_changes |= control.apply_units(meta_value)
+            elif meta_name == 'min':
+                has_changes |= control.apply_min(int(meta_value) if meta_value else None)
             elif meta_name == 'max':
                 has_changes |= control.apply_max(int(meta_value) if meta_value else None)
             if has_changes:
@@ -90,7 +91,6 @@ class WirenConnector(BaseConnector):
         payload = payload.decode("utf-8")
         device_topic_match = self._device_meta_topic_re.match(topic)
         control_meta_topic_match = self._control_meta_topic_re.match(topic)
-        control_state_topic_match = self._control_state_topic_re.match(topic)
         if device_topic_match:
             self._on_device_meta_change(device_topic_match.group(1), device_topic_match.group(2), payload)
         elif control_meta_topic_match:
@@ -156,6 +156,9 @@ class WirenConnector(BaseConnector):
         else:
             device_unique_id = device.id
             device_name = device.name
+
+        if not device_name:
+            device_name = device.id
 
         device_unique_id = self._normalize_id(device_unique_id)
 

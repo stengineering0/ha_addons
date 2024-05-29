@@ -80,7 +80,7 @@ WIREN_UNITS_DICT = {
 _WIREN_TO_HASS_MAPPER = {
     WirenControlType.switch: None,  # see wirenboard_to_hass_type()
     WirenControlType.alarm: 'binary_sensor',
-    WirenControlType.pushbutton: 'binary_sensor',
+    WirenControlType.pushbutton: 'button',
     WirenControlType.range: None,  # see wirenboard_to_hass_type()
     # WirenControlType.rgb: 'light', #TODO: add
     WirenControlType.text: 'sensor',
@@ -111,8 +111,7 @@ def wiren_to_hass_type(control):
     if control.type == WirenControlType.switch:
         return 'binary_sensor' if control.read_only else 'switch'
     elif control.type == WirenControlType.range:
-        # return 'sensor' if control.read_only else 'light'
-        # return 'sensor' if control.read_only else 'cover'
+        return 'sensor' if control.read_only else 'number'
         return 'sensor' if control.read_only else None
     elif control.type in _WIREN_TO_HASS_MAPPER:
         return _WIREN_TO_HASS_MAPPER[control.type]
@@ -147,6 +146,27 @@ def apply_payload_for_component(payload, device, control, control_topic, inverse
             'payload_off': _payload_off,
             'state_topic': f"{control_topic}",
         })
+    elif hass_entity_type == 'button':
+        payload.update({
+            'command_topic': f"{control_topic}",
+            'payload_press': '1',
+        })
+    elif hass_entity_type == 'number':
+        min = control.min
+        if not min:
+            min = 0
+
+        max = control.max
+        if not max:
+            max = 10 ** 9
+
+        payload.update({
+            'min': min,
+            'max': max,
+            'mode': 'slider',
+            'state_topic': f"{control_topic}",
+            'command_topic': f"{control_topic}/on",
+        })
     elif hass_entity_type == 'sensor':
         payload.update({
             'state_topic': f"{control_topic}",
@@ -155,28 +175,6 @@ def apply_payload_for_component(payload, device, control, control_topic, inverse
             payload['device_class'] = control.device_class
         if control.units:
             payload['unit_of_measurement'] = control.units
-    # elif hass_entity_type == 'cover':
-    #     if control.max is None:
-    #         logger.error(f'{device}: Missing "max" for range: {control}')
-    #         return
-    #     payload.update({
-    #         'tilt_status_topic': f"{control_topic}",
-    #         'tilt_command_topic': f"{control_topic}/on",
-    #         'tilt_min': 0,
-    #         'tilt_max': control.max,
-    #         'tilt_closed_value': 0,
-    #         'tilt_opened_value': control.max,
-    #     })
-    # elif hass_entity_type == 'light':
-    #     if control.max is None:
-    #         logger.error(f'{device}: Missing "max" for light: {control}')
-    #         return
-    #     payload.update({
-    #         'command_topic': f"{control_topic}/none",
-    #         'brightness_state_topic': f"{control_topic}",
-    #         'brightness_command_topic': f"{control_topic}/on",
-    #         'brightness_scale': control.max
-    #     })
     else:
         if not hass_entity_type in _unknown_types:
             logger.warning(f"No algorithm for hass type '{control.type.name}', hass: '{hass_entity_type}'")

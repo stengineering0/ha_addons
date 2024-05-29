@@ -11,6 +11,7 @@ class WirenControl:
     error = None
     device_class = None
     units = None
+    min = None
     max = None
     state = None
 
@@ -61,6 +62,13 @@ class WirenControl:
             self.units = units
             return True
 
+    def apply_min(self, min):
+        if self.min == min:
+            return False
+        else:
+            self.min = min
+            return True
+
     def apply_max(self, max):
         if self.max == max:
             return False
@@ -69,7 +77,7 @@ class WirenControl:
             return True
 
     def __str__(self) -> str:
-        return f'Control [{self.id}] type: {self.type}, device_class: {self.device_class}, units: {self.units}, read_only: {self.read_only}, error: {self.error}, max: {self.max}, state: {self.state}'
+        return f'Control [{self.id}] type: {self.type}, device_class: {self.device_class}, units: {self.units}, read_only: {self.read_only}, error: {self.error}, min: {self.min}, max: {self.max}, state: {self.state}'
 
 
 class WirenDevice:
