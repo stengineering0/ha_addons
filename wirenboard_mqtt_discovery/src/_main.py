@@ -9,7 +9,7 @@ from sys import argv
 import yaml
 from voluptuous import Required, Schema, MultipleInvalid, All, Any, Optional, Coerce
 
-from wirenboard import WirenConnector
+from wb_connector import WbConnector
 
 logging.getLogger().setLevel(logging.INFO)  # root
 
@@ -46,8 +46,7 @@ config_schema = Schema({
         Optional('broker_port', default=1883): int,
         Optional('username'): str,
         Optional('password'): str,
-        Optional('client_id', default='wirenboard-mqtt-discovery'): str,
-        Optional('topic_prefix', default=''): str
+        Optional('client_id', default='wirenboard-mqtt-discovery'): str
     },
 })
 
@@ -64,13 +63,12 @@ async def main(conf):
     wiren_conf = conf['wirenboard']
 
     logger.info('Starting')
-    wiren = WirenConnector(
+    wiren = WbConnector(
         broker_host=wiren_conf['broker_host'],
         broker_port=wiren_conf['broker_port'],
         username=wiren_conf['username'] if 'username' in wiren_conf else None,
         password=wiren_conf['password'] if 'password' in wiren_conf else None,
-        client_id=wiren_conf['client_id'],
-        topic_prefix=wiren_conf['topic_prefix']
+        client_id=wiren_conf['client_id']
     )
 
     await wiren.connect()  # FIXME: handle connect exceptions
