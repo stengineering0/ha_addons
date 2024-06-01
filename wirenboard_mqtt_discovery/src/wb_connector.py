@@ -31,6 +31,15 @@ class WbConnector(BaseConnector):
         self._async_tasks = {}
 
     def _on_connect(self, client):
+        self._on_device_meta_change(client, 'buzzer', {'driver': 'system', 'title': {'en': 'WB Buzzer'}})
+        self._on_device_meta_change(client, 'alarms', {'driver': 'system', 'title': {'en': 'WB Alarms'}})
+        self._on_device_meta_change(client, 'hwmon', {'driver': 'system', 'title': {'en': 'WB HW Monitor'}})
+        self._on_device_meta_change(client, 'metrics', {'driver': 'system', 'title': {'en': 'WB Metrics'}})
+        self._on_device_meta_change(client, 'system', {'driver': 'system', 'title': {'en': 'WB System'}})
+        self._on_device_meta_change(client, 'network', {'driver': 'system', 'title': {'en': 'WB Network'}})
+        self._on_device_meta_change(client, 'power_status', {'driver': 'system', 'title': {'en': 'WB Power Status'}})
+        self._on_device_meta_change(client, 'knx', {'driver': 'system', 'title': {'en': 'KNX'}})
+
         client.subscribe('/devices/+/meta', qos=self._subscribe_qos)
 
     def _on_message(self, client, topic, payload, qos, properties):
@@ -40,9 +49,9 @@ class WbConnector(BaseConnector):
         control_meta_topic_match = self._control_meta_topic_re.match(topic)
         control_meta_error_topic_match = self._control_meta_error_topic_re.match(topic)
         if device_topic_match:
-            self._on_device_meta_change(client, device_topic_match.group(1), payload)
+            self._on_device_meta_change(client, device_topic_match.group(1), json.loads(payload))
         elif control_meta_topic_match:
-            self._on_control_meta_change(client, control_meta_topic_match.group(1), control_meta_topic_match.group(2), payload)
+            self._on_control_meta_change(client, control_meta_topic_match.group(1), control_meta_topic_match.group(2), json.loads(payload))
         elif control_meta_error_topic_match:
             self._on_control_meta_error_change(control_meta_error_topic_match.group(1), control_meta_error_topic_match.group(2), payload)
 
@@ -52,7 +61,7 @@ class WbConnector(BaseConnector):
             self._devices[device_id] = WbDevice(device_id)
             client.subscribe('/devices/' + device_id + '/controls/+/meta', qos=self._subscribe_qos)
 
-        self._devices[device_id].meta = json.loads(meta)
+        self._devices[device_id].meta = meta
 
     def _on_control_meta_change(self, client, device_id, control_id, meta):
         # print(f'CONTROL: {device_id} / {control_id} / {meta}')
@@ -66,7 +75,7 @@ class WbConnector(BaseConnector):
             device.controls[control_id] = WbControl(control_id, device_id)
             client.subscribe('/devices/' + device_id + '/controls/' + control_id + '/meta/error', qos=self._subscribe_qos)
 
-        device.controls[control_id].meta = json.loads(meta)
+        device.controls[control_id].meta = meta
 
         self.publish_config(device_id)
 

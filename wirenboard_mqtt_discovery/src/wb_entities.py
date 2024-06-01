@@ -84,25 +84,3 @@ class WbControl(WbEntity):
 
     def unique_id(self):
          return self._normalize_id(f"{self.device_id}_{self.id}")
-
-
-#     def apply_units(self, units):
-#         if units == 'MiB':
-#             has_changes = self.apply_units('MB')
-#             has_changes |= self.apply_device_class('data_size')
-#             return has_changes
-#
-
-#         if WirenBoardDeviceRegistry().is_local_device(device):
-#             device_unique_id = 'wirenboard'
-#             device_name = 'Wirenboard'
-
-# class WirenBoardDeviceRegistry:
-#     _devices = {}
-#
-#     local_device_id = 'wirenboard'
-#     local_device_name = 'Wirenboard'
-#     _local_devices = ('wb-adc', 'wbrules', 'wb-gpio', 'power_status', 'network', 'system', 'hwmon', 'buzzer', 'alarms')
-#
-#     def is_local_device(self, device):
-#         return device.id in self._local_devices
