@@ -58,6 +58,8 @@ class WbDevice(WbEntity):
         return res
 
 class WbControl(WbEntity):
+    availability_published = False
+
     def __init__(self, id, device_id):
         super().__init__(id)
         self.device_id = device_id
@@ -78,7 +80,7 @@ class WbControl(WbEntity):
         return self.meta.get('max') or 10 ** 9
 
     def name(self):
-        return f"{self.device_id} {self.id}".replace("_", " ").title()
+        return self.id.replace("_", " ").title()
 
     def unique_id(self):
          return self._normalize_id(f"{self.device_id}_{self.id}")

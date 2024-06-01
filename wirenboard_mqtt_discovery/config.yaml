@@ -1,5 +1,5 @@
 name: "Wiren Board - MQTT Discovery"
-version: "0.5.39"
+version: "0.6.8"
 slug: "wirenboard-mqtt-discovery"
 description: "MQTT auto discovety for Wiren Board controller"
 arch:

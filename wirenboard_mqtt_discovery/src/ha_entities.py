@@ -31,10 +31,9 @@ class HaEntity:
         payload = {
             'name': self.wb_entity.name(),
             'unique_id': self.wb_entity.unique_id(),
-            # 'availability_topic': f"{self._get_control_topic()}/error",
-            # 'availability_template': '{{ iif(value == None, "1", "0") }}',
-            # 'payload_available': '',
-            # 'payload_not_available': 'r'
+            'availability_topic': f"{self._get_control_topic()}/availability",
+            'payload_available': '1',
+            'payload_not_available': '0'
         }
         payload.update(self.custom_payload())
 

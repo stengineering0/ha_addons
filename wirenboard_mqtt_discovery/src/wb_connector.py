@@ -8,7 +8,6 @@ from wb_entities import WbDevice, WbControl
 
 logger = logging.getLogger(__name__)
 
-
 class WbConnector(BaseConnector):
     _discovery_prefix = "homeassistant"
 
@@ -18,13 +17,17 @@ class WbConnector(BaseConnector):
     _config_qos = 0
     _config_retain = False
 
+    _availability_qos = 0
+    _availability_retain = True
+
     def __init__(self, broker_host, broker_port, username, password, client_id):
         super().__init__(broker_host, broker_port, username, password, client_id)
 
         self._devices = {}
 
         self._device_meta_topic_re = re.compile(r"/devices/([^/]*)/meta")
-        self._control_meta_topic_re = re.compile(r"/devices/([^/]*)/controls/([^/]*)/meta")
+        self._control_meta_topic_re = re.compile(r"/devices/([^/]*)/controls/([^/]*)/meta$")
+        self._control_meta_error_topic_re = re.compile(r"/devices/([^/]*)/controls/([^/]*)/meta/error")
         self._async_tasks = {}
 
     def _on_connect(self, client):
@@ -35,10 +38,13 @@ class WbConnector(BaseConnector):
         payload = payload.decode("utf-8")
         device_topic_match = self._device_meta_topic_re.match(topic)
         control_meta_topic_match = self._control_meta_topic_re.match(topic)
+        control_meta_error_topic_match = self._control_meta_error_topic_re.match(topic)
         if device_topic_match:
             self._on_device_meta_change(client, device_topic_match.group(1), payload)
         elif control_meta_topic_match:
-            self._on_control_meta_change(control_meta_topic_match.group(1), control_meta_topic_match.group(2), payload)
+            self._on_control_meta_change(client, control_meta_topic_match.group(1), control_meta_topic_match.group(2), payload)
+        elif control_meta_error_topic_match:
+            self._on_control_meta_error_change(control_meta_error_topic_match.group(1), control_meta_error_topic_match.group(2), payload)
 
     def _on_device_meta_change(self, client, device_id, meta):
         # print(f'DEVICE: {device_id} / {meta}')
@@ -48,19 +54,36 @@ class WbConnector(BaseConnector):
 
         self._devices[device_id].meta = json.loads(meta)
 
-    def _on_control_meta_change(self, device_id, control_id, meta):
+    def _on_control_meta_change(self, client, device_id, control_id, meta):
         # print(f'CONTROL: {device_id} / {control_id} / {meta}')
         if device_id not in self._devices:
+            logger.warning(f"Control '{control_id}' without device '{device_id}'.")
             return
 
         device = self._devices[device_id]
 
         if control_id not in device.controls:
             device.controls[control_id] = WbControl(control_id, device_id)
+            client.subscribe('/devices/' + device_id + '/controls/' + control_id + '/meta/error', qos=self._subscribe_qos)
 
         device.controls[control_id].meta = json.loads(meta)
 
         self.publish_config(device_id)
+
+    def _on_control_meta_error_change(self, device_id, control_id, meta):
+        # print(f'ERROR: {device_id} / {control_id} / {meta}')
+        if device_id not in self._devices:
+            logger.warning(f"Error for '{control_id}' without device '{device_id}'.")
+            return
+
+        device = self._devices[device_id]
+
+        if control_id not in device.controls:
+            logger.warning(f"Error without device {device_id} / {control_id}'.")
+            return
+
+        self._publish_availability_sync(device_id, control_id, True if not meta else False)
+        device.controls[control_id].availability_published = True
 
     def publish_config(self, device_id):
         async def do_publish_config():
@@ -76,18 +99,16 @@ class WbConnector(BaseConnector):
         self._async_tasks[task_id] = loop.create_task(task)
 
     def _publish_config_sync(self, device_id):
-        """
-        Publish discovery topic to the HA
-        """
-
         if device_id not in self._devices:
             return
 
         device = self._devices[device_id]
         device_payload = device.config_payload()
 
-
         for control in device.ha_controls():
+            if not control.wb_entity.availability_published:
+                self._publish_availability_sync(device.id, control.id, True)
+
             control_payload = control.config_payload()
             control_payload['device'] = device_payload
 
@@ -96,3 +117,10 @@ class WbConnector(BaseConnector):
 
             logger.info(f"[{device.id}/{control.id}] publish config to '{topic}'")
             self._publish(topic, json.dumps(control_payload), qos=self._config_qos, retain=self._config_retain)
+
+    def _publish_availability_sync(self, device_id, control_id, availability):
+        payload = '1' if availability else '0'
+        topic = '/devices/' + device_id + '/controls/' + control_id + '/availability'
+
+        logger.info(f"[{device_id}/{control_id}] availability: {'online' if availability else 'offline'}")
+        self._publish(topic, payload, qos=self._availability_qos, retain=self._availability_retain)
