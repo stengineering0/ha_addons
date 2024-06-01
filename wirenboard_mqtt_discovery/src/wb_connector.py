@@ -15,9 +15,9 @@ class WbConnector(BaseConnector):
 
     _publish_delay_sec = 1  # Delay before publishing to ensure that we got all device controls
     _config_qos = 0
-    _config_retain = False
+    _config_retain = True
 
-    _availability_qos = 0
+    _availability_qos = 1
     _availability_retain = True
 
     def __init__(self, broker_host, broker_port, username, password, client_id):
@@ -114,9 +114,10 @@ class WbConnector(BaseConnector):
         device = self._devices[device_id]
         device_payload = device.config_payload()
 
-        for control in device.ha_controls():
-            if not control.wb_entity.availability_published:
-                self._publish_availability_sync(device.id, control.id, True)
+        for control_id, control in device.ha_controls().items():
+            for wb_entity in control.wb_entities:
+                if not wb_entity.availability_published:
+                    self._publish_availability_sync(device_id, wb_entity.id, True)
 
             control_payload = control.config_payload()
             control_payload['device'] = device_payload
@@ -124,7 +125,7 @@ class WbConnector(BaseConnector):
             # Topic path: <discovery_topic>/<component>/[<node_id>/]<object_id>/config
             topic = self._discovery_prefix + '/' + control.type + '/' + device.ha_id + '/' + control.ha_id + '/config'
 
-            logger.info(f"[{device.id}/{control.id}] publish config to '{topic}'")
+            logger.info(f"[{device_id}/{control_id}] publish config to '{topic}'")
             self._publish(topic, json.dumps(control_payload), qos=self._config_qos, retain=self._config_retain)
 
     def _publish_availability_sync(self, device_id, control_id, availability):

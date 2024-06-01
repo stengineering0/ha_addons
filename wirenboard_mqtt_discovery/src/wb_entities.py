@@ -1,7 +1,8 @@
 import logging
 import re
+from collections import OrderedDict
 from mappers import wiren_to_hass_type
-from ha_entities import HaEntity
+from ha_entities import PrimitiveHaEntity, HaBrightnessLight
 
 logger = logging.getLogger(__name__)
 
@@ -45,17 +46,46 @@ class WbDevice(WbEntity):
         return self.meta.get('driver') or 'UNKNOWN'
 
     def ha_controls(self):
-        res = []
+        res = self._basic_ha_controls(self.controls)
+        self._compile_brightness_lights(res)
+        return res
 
-        for control_id in self.controls:
-            control = self.controls[control_id]
+    @staticmethod
+    def _basic_ha_controls(wb_controls):
+        res = OrderedDict()
+        for control_id in wb_controls:
+            control = wb_controls[control_id]
             ha_type = wiren_to_hass_type(control)
 
             if not ha_type:
                 continue
 
-            res.append(HaEntity.klass(ha_type)(control))
+            res[control.id] = PrimitiveHaEntity.klass(ha_type)(control)
         return res
+
+    @staticmethod
+    def _compile_brightness_lights(ha_controls):
+        lights = []
+        brightness_re = re.compile(r"^(Channel \d+) Brightness$")
+
+        for brightness_control_id, brightness_control in ha_controls.items():
+            if not brightness_control.type == 'number':
+                continue
+
+            brightness_re_match = brightness_re.match(brightness_control_id)
+            if not brightness_re_match:
+                continue
+
+            switch_control = ha_controls.get(brightness_re_match.group(1))
+            if not switch_control or not switch_control.type == 'switch':
+                continue
+
+            light = HaBrightnessLight(switch_control, brightness_control)
+            lights.append(light)
+
+        for light in lights:
+            ha_controls[light.ha_switch_control.id] = light
+            del ha_controls[light.ha_brightness_control.id]
 
 class WbControl(WbEntity):
     availability_published = False
