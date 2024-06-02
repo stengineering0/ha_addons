@@ -1,6 +1,6 @@
 # Wiren Board - MQTT Discovery
 
-Heavily based on [hacker-cb/wb-hass-gw](hacker-cb/wb-hass-gw) repository, with following changes:
+Heavily based on [hacker-cb/wb-hass-gw](https://github.com/Hacker-CB/wb-hass-gw) repository, with following changes:
 
 1. The code is wrapped into full-weight HA Addon;
 

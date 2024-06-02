@@ -17,7 +17,6 @@ class WbEntity:
 
     def __init__(self, id):
         self.id = id
-        self.ha_id = self._normalize_id(id)
 
     def __str__(self) -> str:
         return f'{type(self).__name__} [{self.id}] {self.meta}'
@@ -25,6 +24,7 @@ class WbEntity:
 class WbDevice(WbEntity):
     def __init__(self, id):
         super().__init__(id)
+        self.ha_id = self._normalize_id(id)
         self._controls = {}
 
     @property
@@ -93,6 +93,7 @@ class WbControl(WbEntity):
     def __init__(self, id, device_id):
         super().__init__(id)
         self.device_id = device_id
+        self.ha_id = self._normalize_id(f"{device_id}_{id}")
 
     def type(self):
         return self.meta.get('type')
@@ -111,6 +112,3 @@ class WbControl(WbEntity):
 
     def name(self):
         return self.id.replace("_", " ").title()
-
-    def unique_id(self):
-         return self._normalize_id(f"{self.device_id}_{self.id}")

@@ -24,7 +24,7 @@ class HaEntity:
     def config_payload(self):
         payload = {
             'name': self.main_wb_entity.name(),
-            'unique_id': self.main_wb_entity.unique_id(),
+            'unique_id': self.main_wb_entity.ha_id,
             'availability': list(map(self.availability_payload, self.wb_entities))
         }
         payload.update(self.custom_payload())

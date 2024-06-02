@@ -10,16 +10,14 @@ import yaml
 from voluptuous import Required, Schema, MultipleInvalid, All, Any, Optional, Coerce
 
 from wb_connector import WbConnector
+import uvloop
+asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 logging.getLogger().setLevel(logging.INFO)  # root
 
 logger = logging.getLogger(__name__)
 
 STOP = asyncio.Event()
-
-
-# asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-
 
 class ConfigLogLevel(Enum):
     FATAL = 'FATAL'
