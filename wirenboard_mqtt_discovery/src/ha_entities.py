@@ -44,6 +44,8 @@ class PrimitiveHaEntity(HaEntity):
             return HaSwitch
         elif type == 'number':
             return HaNumber
+        elif type == 'text':
+            return HaText
 
     def __init__(self, wb_entity):
         self.main_wb_entity = wb_entity
@@ -115,6 +117,15 @@ class HaNumber(PrimitiveHaEntity):
             'min': self.main_wb_entity.min(),
             'max': self.main_wb_entity.max(),
             'mode': 'slider',
+            'state_topic': self.get_main_control_topic(),
+            'command_topic': f"{self.get_main_control_topic()}/on",
+        }
+
+class HaText(PrimitiveHaEntity):
+    type = 'text'
+
+    def custom_payload(self):
+        return {
             'state_topic': self.get_main_control_topic(),
             'command_topic': f"{self.get_main_control_topic()}/on",
         }

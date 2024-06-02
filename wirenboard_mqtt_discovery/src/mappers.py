@@ -15,7 +15,7 @@ class WirenControlType(Enum):
     alarm = "alarm"
     pushbutton = "pushbutton"
     range = "range"
-    # rgb = "rgb"
+    rgb = "rgb"
     text = "text"
     value = "value"
 
@@ -42,7 +42,7 @@ _WIREN_TO_HASS_MAPPER = {
     WirenControlType.alarm: 'binary_sensor',
     WirenControlType.pushbutton: 'button',
     WirenControlType.range: None,  # see wirenboard_to_hass_type()
-    # WirenControlType.rgb: 'light', #TODO: add
+    WirenControlType.rgb: 'text',
     WirenControlType.text: 'sensor',
     WirenControlType.value: 'sensor',
 
