@@ -34,6 +34,7 @@ class WirenControlType(Enum):
     concentration = "concentration"
     heat_power = "heat_power"
     heat_energy = "heat_energy"
+    current = "current"
     lux = "lux"
     sound_level = "sound_level"
 
@@ -60,6 +61,7 @@ _WIREN_TO_HASS_MAPPER = {
     WirenControlType.concentration: 'sensor',
     WirenControlType.heat_power: 'sensor',
     WirenControlType.heat_energy: 'sensor',
+    WirenControlType.current: 'sensor',
     WirenControlType.lux: 'sensor',
     WirenControlType.sound_level: 'sensor',
 }
@@ -76,6 +78,7 @@ WIREN_DEVICE_CLASSES = {
     WirenControlType.water_flow: 'volume_flow_rate',
     WirenControlType.water_consumption: 'water',
     WirenControlType.concentration: 'carbon_dioxide',
+    WirenControlType.current: 'current',
     WirenControlType.lux: 'illuminance',
     WirenControlType.sound_level: 'sound_pressure',
 }
@@ -95,8 +98,13 @@ WIREN_UNITS_DICT = {
     WirenControlType.concentration: 'ppm',
     WirenControlType.heat_power: 'Gcal/hour',
     WirenControlType.heat_energy: 'Gcal',
+    WirenControlType.current: 'A',
     WirenControlType.lux: 'lx',
     WirenControlType.sound_level: 'dB',
+}
+
+WIREN_STATE_CLASSES = {
+    WirenControlType.power_consumption: 'total',
 }
 
 _unknown_types = []

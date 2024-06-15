@@ -1,4 +1,4 @@
-from mappers import WirenControlType, WIREN_DEVICE_CLASSES, WIREN_UNITS_DICT
+from mappers import WirenControlType, WIREN_DEVICE_CLASSES, WIREN_STATE_CLASSES, WIREN_UNITS_DICT
 
 class HaEntity:
     @staticmethod
@@ -28,7 +28,8 @@ class HaEntity:
             'availability': list(map(self.availability_payload, self.wb_entities))
         }
         payload.update(self.custom_payload())
-        return payload
+        filtered_payload = {k: v for k, v in payload.items() if v is not None}
+        return filtered_payload
 
 
 class PrimitiveHaEntity(HaEntity):
@@ -84,7 +85,18 @@ class HaSensor(PrimitiveHaEntity):
         self.wb_type = WirenControlType(wb_entity.type())
 
     def device_class(self):
+        origin_units = self.main_wb_entity.units()
+
+        if self.wb_type == WirenControlType.value:
+            if origin_units == '°C':
+                return 'temperature'
+            elif origin_units == 'ppb':
+                return 'volatile_organic_compounds_parts'
+
         return WIREN_DEVICE_CLASSES.get(self.wb_type)
+
+    def state_class(self):
+        return WIREN_STATE_CLASSES.get(self.wb_type)
 
     def units(self):
         return WIREN_UNITS_DICT.get(self.wb_type) or self.main_wb_entity.units()
@@ -92,6 +104,7 @@ class HaSensor(PrimitiveHaEntity):
     def custom_payload(self):
         return {
             'device_class': self.device_class(),
+            'state_class': self.state_class(),
             'unit_of_measurement': self.units(),
             'state_topic': self.get_main_control_topic(),
         }

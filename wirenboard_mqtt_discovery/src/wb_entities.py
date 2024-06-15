@@ -102,7 +102,11 @@ class WbControl(WbEntity):
         return self.meta.get('readonly')
 
     def units(self):
-        return self.meta.get('units')
+        origin_units = self.meta.get('units')
+        if origin_units == 'deg C':
+            return '°C'
+
+        return origin_units
 
     def min(self):
         return self.meta.get('min') or 0
