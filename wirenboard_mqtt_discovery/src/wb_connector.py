@@ -168,8 +168,8 @@ class WbConnector(BaseConnector):
         self.cleanup_discovery()
 
     def _cleanup_discovery_sync(self):
-        for topic, precence in self._config_topics.items():
-            if not precence:
+        for topic, presence in self._config_topics.items():
+            if not presence:
                 self._publish(topic, None, qos=self._config_qos, retain=self._config_retain)
                 del self._config_topics[topic]
 
