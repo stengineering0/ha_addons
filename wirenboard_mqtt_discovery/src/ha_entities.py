@@ -101,11 +101,22 @@ class HaSensor(PrimitiveHaEntity):
     def units(self):
         return WIREN_UNITS_DICT.get(self.wb_type) or self.main_wb_entity.units()
 
+    def precision(self):
+        if self.device_class() == 'temperature':
+            return 1
+
+    def precision_template(self):
+        precision = self.precision()
+        if precision is not None:
+            return f"{{{{ float(value) | round({precision}) }}}}"
+
     def custom_payload(self):
         return {
             'device_class': self.device_class(),
             'state_class': self.state_class(),
             'unit_of_measurement': self.units(),
+            'suggested_display_precision': self.precision(),
+            'value_template': self.precision_template(),
             'state_topic': self.get_main_control_topic(),
         }
 
