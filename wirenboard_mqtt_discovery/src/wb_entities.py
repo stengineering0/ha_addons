@@ -2,7 +2,7 @@ import logging
 import re
 from collections import OrderedDict
 from mappers import wiren_to_hass_type
-from ha_entities import PrimitiveHaEntity, HaBrightnessLight
+from ha_entities import PrimitiveHaEntity, HaGRBLight, Ha1ChannelLight
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,8 @@ class WbDevice(WbEntity):
 
     def ha_controls(self):
         res = self._basic_ha_controls(self.controls)
-        self._compile_brightness_lights(res)
+        self._compile_rgb_lights(res)
+        self._compile_1_channel_lights(res)
         return res
 
     @staticmethod
@@ -64,7 +65,22 @@ class WbDevice(WbEntity):
         return res
 
     @staticmethod
-    def _compile_brightness_lights(ha_controls):
+    def _compile_rgb_lights(ha_controls):
+        switch_control = ha_controls.get('RGB Strip')
+        brightness_control = ha_controls.get('RGB Strip Brightness')
+        palette_control = ha_controls.get('RGB Palette')
+
+        if not switch_control or not brightness_control or not palette_control:
+            return
+
+        light = HaGRBLight(switch_control, brightness_control, palette_control)
+
+        ha_controls[light.ha_switch_control.id] = light
+        del ha_controls[light.ha_brightness_control.id]
+        del ha_controls[light.ha_palette_control.id]
+
+    @staticmethod
+    def _compile_1_channel_lights(ha_controls):
         lights = []
         brightness_re = re.compile(r"^(Channel \d+) Brightness$")
 
@@ -80,7 +96,7 @@ class WbDevice(WbEntity):
             if not switch_control or not switch_control.type == 'switch':
                 continue
 
-            light = HaBrightnessLight(switch_control, brightness_control)
+            light = Ha1ChannelLight(switch_control, brightness_control)
             lights.append(light)
 
         for light in lights:

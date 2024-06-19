@@ -154,7 +154,7 @@ class HaText(PrimitiveHaEntity):
             'command_topic': f"{self.get_main_control_topic()}/on",
         }
 
-class HaBrightnessLight(HaEntity):
+class Ha1ChannelLight(HaEntity):
     type = 'light'
 
     def __init__(self, ha_switch_control, ha_brightness_control):
@@ -179,3 +179,22 @@ class HaBrightnessLight(HaEntity):
             'payload_on': '1',
             'payload_off': '0'
         }
+
+class HaGRBLight(Ha1ChannelLight):
+    def __init__(self, ha_switch_control, ha_brightness_control, ha_palette_control):
+        super().__init__(ha_switch_control, ha_brightness_control)
+        self.ha_palette_control = ha_palette_control
+
+    @property
+    def wb_entities(self):
+        return super().wb_entities + [self.ha_palette_control.main_wb_entity]
+
+    def custom_payload(self):
+        res = super().custom_payload()
+        res.update({
+            'rgb_state_topic': self.ha_palette_control.get_main_control_topic(),
+            'rgb_command_topic': f"{self.ha_palette_control.get_main_control_topic()}/on",
+            'rgb_value_template': "{{ value.split(';') | join(',') }}",
+            'rgb_command_template': "{{ red }};{{ green }};{{ blue }}"
+        })
+        return res
