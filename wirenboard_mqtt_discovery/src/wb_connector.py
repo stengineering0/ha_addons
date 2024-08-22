@@ -33,10 +33,11 @@ class WbConnector(BaseConnector):
         self._devices = {}
         self._config_topics = {}
 
-        self._device_meta_topic_re = re.compile(r"/devices/([^/]*)/meta")
-        self._control_meta_topic_re = re.compile(r"/devices/([^/]*)/controls/([^/]*)/meta$")
-        self._control_meta_error_topic_re = re.compile(r"/devices/([^/]*)/controls/([^/]*)/meta/error")
-        self._discovery_topic_re = re.compile(self._discovery_prefix + r"/([^/]*)/" + self._discovery_node_id + r"/([^/]*)/config")
+        topic_id_pattern = r"([-:\w\s]+)"
+        self._device_meta_topic_re = re.compile(r"/devices/" + topic_id_pattern + r"/meta")
+        self._control_meta_topic_re = re.compile(r"/devices/" + topic_id_pattern + r"/controls/" + topic_id_pattern + r"/meta$")
+        self._control_meta_error_topic_re = re.compile(r"/devices/" + topic_id_pattern + r"/controls/" + topic_id_pattern + r"/meta/error")
+        self._discovery_topic_re = re.compile(self._discovery_prefix + r"/" + topic_id_pattern + r"/" + self._discovery_node_id + r"/" + topic_id_pattern + r"/config")
         self._async_tasks = {}
 
     def _on_connect(self, client):
@@ -67,6 +68,8 @@ class WbConnector(BaseConnector):
             self._on_control_meta_change(client, control_meta_topic_match.group(1), control_meta_topic_match.group(2), json.loads(payload))
         elif control_meta_error_topic_match:
             self._on_control_meta_error_change(control_meta_error_topic_match.group(1), control_meta_error_topic_match.group(2), payload)
+        else:
+            logger.warning(f"Mallformed topic: ({topic})")
 
     def _on_discovery_topic_change(self, client, topic):
         # print(f'DISCOVERY: {topic}')
