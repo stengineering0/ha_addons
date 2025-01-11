@@ -82,17 +82,23 @@ class WbDevice(WbEntity):
     @staticmethod
     def _compile_1_channel_lights(ha_controls):
         lights = []
-        brightness_re = re.compile(r"^(Channel \d+) Brightness$")
+        brightness_re1 = re.compile(r"^(Channel \d+) Brightness$")
+        brightness_re2 = re.compile(r"^Channel (\d+)$")
 
         for brightness_control_id, brightness_control in ha_controls.items():
+            switch_control = None
+
             if not brightness_control.type == 'number':
                 continue
 
-            brightness_re_match = brightness_re.match(brightness_control_id)
-            if not brightness_re_match:
-                continue
+            brightness_re_match1 = brightness_re1.match(brightness_control_id)
+            brightness_re_match2 = brightness_re2.match(brightness_control_id)
 
-            switch_control = ha_controls.get(brightness_re_match.group(1))
+            if brightness_re_match1:
+                switch_control = ha_controls.get(brightness_re_match1.group(1))
+            elif brightness_re_match2:
+                switch_control = ha_controls.get('K' + brightness_re_match2.group(1))
+
             if not switch_control or not switch_control.type == 'switch':
                 continue
 
