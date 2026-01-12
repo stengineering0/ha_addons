@@ -104,6 +104,7 @@ WIREN_UNITS_DICT = {
 }
 
 WIREN_STATE_CLASSES = {
+    WirenControlType.power: 'measurement',
     WirenControlType.power_consumption: 'total',
 }
 
